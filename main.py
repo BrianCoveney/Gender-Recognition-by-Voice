@@ -17,26 +17,32 @@ def runClassifiersCV(data, target):
     dTree = tree.DecisionTreeClassifier()
     scores = model_selection.cross_val_score(dTree, data, target, cv=10)
     print("Tree        : ", scores.mean())
+    # Tree: 0.952700819998
 
     rbfSvm = SVC()
     scores = model_selection.cross_val_score(rbfSvm, data, target, cv=10)
     print("SVM         : ", scores.mean())
+    # SVM        : 0.963748905342
 
     nearestN = KNeighborsClassifier()
     scores = model_selection.cross_val_score(nearestN, data, target, cv=10)
     print("KNNeighbour : ", scores.mean())
+    # KNNeighbour:  0.955859406098
 
     randomForest = RandomForestClassifier()
     scores = model_selection.cross_val_score(randomForest, data, target, cv=10)
     print("RForest     : ", scores.mean())
+    # RForest    : 0.964688320994
 
     nBayes = naive_bayes.GaussianNB()
     scores = model_selection.cross_val_score(nBayes, data, target, cv=10)
     print("Naive Bayes : ", scores.mean())
+    # Naive Bayes: 0.862081044503
 
     logR = linear_model.LogisticRegression()
     scores = model_selection.cross_val_score(logR, data, target, cv=10)
     print("Log R       : ", scores.mean())
+    # Log R      :  0.96311599395
 
 
 def runModelSelectionRandomForest(data, target):
@@ -136,27 +142,28 @@ def dataCleansing(df_train, df_test):
     male_funFreq_outlier_index = df_train[((df_train['meanfun'] < 0.085) | (df_train['meanfun'] > 0.180)) &
                                               (df_train['label'] == 'male')].index
     male_funFreq_outlier_index = list(male_funFreq_outlier_index)
-    df_train[((df_train['meanfun'] < 0.085) | (df_train['meanfun'] > 0.180)) & (
-        df_train['label'] == 'male')].shape
+    print(df_train[((df_train['meanfun'] < 0.085) | (df_train['meanfun'] > 0.180)) & (
+        df_train['label'] == 'male')].shape)
 
     # Filtering ouliers from female category
     female_funFreq_outlier_index = df_train[
         ((df_train['meanfun'] < 0.165) | (df_train['meanfun'] > 0.255)) &
         (df_train['label'] == 'female')].index
     female_funFreq_outlier_index = list(female_funFreq_outlier_index)
-    df_train[((df_train['meanfun'] < 0.165) | (df_train['meanfun'] > 0.255)) & (
-        df_train['label'] == 'female')].shape
+
+    print(df_train[((df_train['meanfun'] < 0.165) | (df_train['meanfun'] > 0.255)) & (
+        df_train['label'] == 'female')].shape)
 
     index_to_remove = male_funFreq_outlier_index + female_funFreq_outlier_index
-    print("Index to remove:",len(index_to_remove))  # prints 710
+    print("Index to remove:",len(index_to_remove))  # 710
 
-    print("Data size", df_train.shape)  # prints (3168, 21)
+    print("Actual Raw Data size", df_train.shape)  # (3168, 21)
 
     df_train = df_train.drop(index_to_remove, axis=0)
-    print("Data size", df_train.shape)  # prints (2458, 21)
+    print("Data size", df_train.shape)  # (2458, 21)
 
     df_test = df_test.drop(index_to_remove, axis=0)
-    print("Data size", df_test.shape)  # prints (2458, 21)
+    print("Data size", df_test.shape)  # (2458, 21)
 
     print("Scatter plot post data cleansing \n"
           "Please close window to continue")
@@ -198,8 +205,8 @@ def main():
     runClassifiersCV(feature_train, label_train)
 
     # Best parameters set found on SVC development set:
-    # {'C': 1, 'gamma': 0.001, 'kernel': 'linear'} with a score of  0.9696969696969697
-    bestModel = runModelSelectionSVC(feature_train, label_train)
+    # {'C': 1, 'gamma': 0.001, 'kernel': 'linear'} with a score of  0.96.96969696969697
+    # bestModel = runModelSelectionSVC(feature_train, label_train)
 
     # Best parameters set found on RandomForest development set:
     # {'criterion': 'gini', 'max_features': 'auto', 'n_estimators': 70} with a score of  0.9681186868686869
@@ -209,12 +216,12 @@ def main():
     # {'n_neighbors': 3, 'p': 2, 'weights': 'uniform'} with a score of  0.95864898989899
     # bestModel = runModelSelectionKNN(feature_train, label_train)
 
-    results = bestModel.predict(feature_test)
-
-    resultSeries = pd.Series(data=results, name='label', dtype='int64')
-
-    df = pd.DataFrame({"PassengerId": genderSeries, "label": resultSeries})
-    df.to_csv("res/kaggle_gridSearch.csv", index=False, header=True)
+    # results = bestModel.predict(feature_test)
+    #
+    # resultSeries = pd.Series(data=results, name='label', dtype='int64')
+    #
+    # df = pd.DataFrame({"PassengerId": genderSeries, "label": resultSeries})
+    # df.to_csv("res/kaggle_gridSearch.csv", index=False, header=True)
 
 if __name__ == '__main__':
     main()
