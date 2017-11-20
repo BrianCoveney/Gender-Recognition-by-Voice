@@ -8,9 +8,6 @@ from sklearn import naive_bayes
 from sklearn.grid_search import GridSearchCV
 from sklearn import model_selection
 from sklearn import linear_model
-import sklearn.metrics as metrics
-from sklearn.datasets import load_svmlight_files
-import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -111,10 +108,20 @@ def performPreprocessing(gender):
 
 #
 # Data Cleaning
-# Ref. https://en.wikipedia.org/wiki/Voice_frequency
-# The voiced speech of a typical adult:
+#
+# Domain knowledge:
+# Range of voice freq for a typical adult (https://en.wikipedia.org/wiki/Voice_frequency):
 # male fundamental frequency from 85 to 180 Hz
 # female fundamental frequency from 165 to 255 Hz
+#
+# Here we filter values based on the datasets 'meanFun' feature.
+#   - for male values less than 0.085 and greater than 0.18
+#   - for female values less than 0.165 and greater than 0.255
+#
+# The following code is slightly adapted from:
+# Voice Dataset for Gender Regonition from Kaggle
+# Author: Pradeep Sathyamurthy
+# Link: https://www.kaggle.com/pradeepsathyamurthy/kernel-tricks-to-build-efficient-classifier-model
 #
 def dataCleansing(df_train, df_test):
 
@@ -180,9 +187,7 @@ def main():
     feature_test = performPreprocessing(gender_test)
 
 
-
     # Split the training dataset into features and classes. A 1D class array and 2D features array.
-
     label_train = feature_train["label"]
     feature_train = feature_train.drop(["label"], axis=1)
 
@@ -192,7 +197,9 @@ def main():
 
     runClassifiersCV(feature_train, label_train)
 
-
+    # Best parameters set found on SVC development set:
+    # {'C': 1, 'gamma': 0.001, 'kernel': 'linear'} with a score of  0.9696969696969697
+    bestModel = runModelSelectionSVC(feature_train, label_train)
 
     # Best parameters set found on RandomForest development set:
     # {'criterion': 'gini', 'max_features': 'auto', 'n_estimators': 70} with a score of  0.9681186868686869
@@ -202,16 +209,12 @@ def main():
     # {'n_neighbors': 3, 'p': 2, 'weights': 'uniform'} with a score of  0.95864898989899
     # bestModel = runModelSelectionKNN(feature_train, label_train)
 
-    # Best parameters set found on SVC development set:
-    # {'C': 1, 'gamma': 0.001, 'kernel': 'linear'} with a score of  0.9696969696969697
-    # bestModel = runModelSelectionSVC(feature_train, label_train)
-    #
-    # results = bestModel.predict(feature_test)
-    #
-    # resultSeries = pd.Series(data=results, name='label', dtype='int64')
-    #
-    # df = pd.DataFrame({"PassengerId": genderSeries, "label": resultSeries})
-    # df.to_csv("res/kaggle_gridSearch.csv", index=False, header=True)
+    results = bestModel.predict(feature_test)
+
+    resultSeries = pd.Series(data=results, name='label', dtype='int64')
+
+    df = pd.DataFrame({"PassengerId": genderSeries, "label": resultSeries})
+    df.to_csv("res/kaggle_gridSearch.csv", index=False, header=True)
 
 if __name__ == '__main__':
     main()
